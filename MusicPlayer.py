@@ -10,7 +10,17 @@ LINE_DISTANCE_RATE = 1.
 
 
 def make_cur_line(line: pyonfx.Line):
+    line_dist = int(line.height * LINE_DISTANCE_RATE)
     new_line = line.copy()
+    new_line.text = (
+            "{\\an5\\move(%.3f,%.3f,%.3f,%.3f,%d,%d)}%s"
+            % (
+                line.center, line.middle + line_dist,
+                line.center, line.middle,
+                0, MOVEMENT_TIME_MS,
+                line.text
+            )
+    )
     return new_line
 
 
