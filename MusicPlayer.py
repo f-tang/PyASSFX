@@ -3,7 +3,7 @@ from argparse import ArgumentParser
 
 import pyonfx
 
-PREV_LINE_NUM = 3
+PREV_LINE_NUM = 2
 NEXT_LINE_NUM = 3
 MOVEMENT_TIME_MS = 300
 LINE_DISTANCE_RATE = 1.
