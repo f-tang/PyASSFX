@@ -30,6 +30,7 @@ def make_prev_line(current_line: pyonfx.Line,
     line_dist = int(current_line.height * LINE_DISTANCE_RATE)
     new_line = current_line.copy()
     new_line.layer = idx
+    new_line.actor = prev_line.actor
     new_line.y = current_line.y - line_dist * idx
     if 0 < idx < PREV_LINE_NUM:
         new_line.text = (
@@ -61,6 +62,7 @@ def make_next_line(current_line: pyonfx.Line,
     line_dist = int(current_line.height * LINE_DISTANCE_RATE)
     new_line = current_line.copy()
     new_line.layer = idx + PREV_LINE_NUM
+    new_line.actor = next_line.actor
     new_line.y = current_line.y + line_dist * idx
     if 0 < idx < NEXT_LINE_NUM:
         new_line.text = (
