@@ -10,6 +10,7 @@ LINE_DISTANCE_RATE = 1.
 FADE_TIME = 300
 MAIN_LINE_SCALE = 100
 SUB_LINE_SCALE = 60
+PREV_LINE_OPACITY = 128
 
 
 def make_cur_line(line: pyonfx.Line, line_style: str = "MainStyle", motion: bool = True):
@@ -60,21 +61,28 @@ def make_prev_line(current_line: pyonfx.Line, prev_line: pyonfx.Line,
     scale = "\\fscx%d\\fscy%d" % (MAIN_LINE_SCALE, MAIN_LINE_SCALE) if line_style == "MainStyle" \
         else "\\fscx%d\\fscy%d" % (SUB_LINE_SCALE, SUB_LINE_SCALE)
     if 0 < idx < PREV_LINE_NUM:
+        fade = ("\\fade(%d,%d,%d,%d,%d,%d,%d)"
+                % (0, PREV_LINE_OPACITY, PREV_LINE_OPACITY,
+                   0, fade_time, fade_time, fade_time))
         new_line.text = (
-                "{\\an5%s%s}%s"
+                "{\\an5%s%s%s}%s"
                 % (
                     scale,
                     movement if motion else position,
+                    fade,
                     prev_line.text
                 )
         )
     elif idx == PREV_LINE_NUM:
+        fade = ("\\fade(%d,%d,%d,%d,%d,%d,%d)"
+                % (PREV_LINE_OPACITY, PREV_LINE_OPACITY, 255,
+                   0, fade_time, max(new_line.duration - fade_time, fade_time), new_line.duration))
         new_line.text = (
-                "{\\an5%s%s\\fad(%d,%d)}%s"
+                "{\\an5%s%s%s}%s"
                 % (
                     scale,
                     movement if motion else position,
-                    0, fade_time,
+                    fade,
                     prev_line.text
                 )
         )
