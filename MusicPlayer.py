@@ -60,9 +60,11 @@ def make_prev_line(current_line: pyonfx.Line, prev_line: pyonfx.Line,
                 % (current_line.center, current_line.middle - line_dist * idx))
     scale = "\\fscx%d\\fscy%d" % (MAIN_LINE_SCALE, MAIN_LINE_SCALE) if line_style == "MainStyle" \
         else "\\fscx%d\\fscy%d" % (SUB_LINE_SCALE, SUB_LINE_SCALE)
+    opacity = PREV_LINE_OPACITY + (255 - PREV_LINE_OPACITY) / max(1, PREV_LINE_NUM) * max(0, idx - 1)
     if 0 < idx < PREV_LINE_NUM:
+
         fade = ("\\fade(%d,%d,%d,%d,%d,%d,%d)"
-                % (0, PREV_LINE_OPACITY, PREV_LINE_OPACITY,
+                % (0, opacity, opacity,
                    0, fade_time, fade_time, fade_time))
         new_line.text = (
                 "{\\an5%s%s%s}%s"
@@ -75,7 +77,7 @@ def make_prev_line(current_line: pyonfx.Line, prev_line: pyonfx.Line,
         )
     elif idx == PREV_LINE_NUM:
         fade = ("\\fade(%d,%d,%d,%d,%d,%d,%d)"
-                % (PREV_LINE_OPACITY, PREV_LINE_OPACITY, 255,
+                % (opacity, opacity, 255,
                    0, fade_time, max(new_line.duration - fade_time, fade_time), new_line.duration))
         new_line.text = (
                 "{\\an5%s%s%s}%s"
