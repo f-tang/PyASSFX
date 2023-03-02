@@ -1,5 +1,6 @@
 import os
 from argparse import ArgumentParser
+from common import *
 
 import pyonfx
 
@@ -18,30 +19,24 @@ def make_cur_line(line: pyonfx.Line, line_style: str = "MainStyle", motion: bool
     new_line = line.copy()
     new_line.style = line_style
     movement_time = min(MOVEMENT_TIME_MS, new_line.duration)
-    movement = ("\\move(%.3f,%.3f,%.3f,%.3f,%d,%d)"
-                % (
-                    line.center, line.middle + line_dist,
-                    line.center, line.middle,
-                    0, movement_time
-                ))
-    position = ("\\pos(%.3f,%.3f)"
-                % (line.center, line.middle))
-    scale = "\\fscx%d\\fscy%d" % (MAIN_LINE_SCALE, MAIN_LINE_SCALE) if line_style == "MainStyle" \
-        else "\\fscx%d\\fscy%d" % (SUB_LINE_SCALE, SUB_LINE_SCALE)
+    an = set_alignment(5)
+    movement = set_movement(line.center, line.middle + line_dist,
+                            line.center, line.middle,
+                            0, movement_time)
+    position = set_position(line.center, line.middle)
+    scale = set_font_scale(MAIN_LINE_SCALE, MAIN_LINE_SCALE) if line_style == "MainStyle" \
+        else set_font_scale(SUB_LINE_SCALE, SUB_LINE_SCALE)
     new_line.text = (
-            "{\\an5%s%s}%s"
-            % (
-                scale,
-                movement if motion else position,
-                line.text
-            )
+            "{%s%s%s}%s"
+            % (an, scale, movement if motion else position,
+               line.text
+               )
     )
     return new_line
 
 
 def make_prev_line(current_line: pyonfx.Line, prev_line: pyonfx.Line,
                    idx: int, line_style: str = "SubStyle", motion: bool = True):
-
     line_dist = int(current_line.height * LINE_DISTANCE_RATE)
     new_line = current_line.copy()
     new_line.layer = idx
@@ -50,51 +45,38 @@ def make_prev_line(current_line: pyonfx.Line, prev_line: pyonfx.Line,
     new_line.y = current_line.y - line_dist * idx
     movement_time = min(MOVEMENT_TIME_MS, new_line.duration)
     fade_time = min(FADE_TIME, new_line.duration)
-    movement = ("\\move(%.3f,%.3f,%.3f,%.3f,%d,%d)"
-                % (
+    an = set_alignment(5)
+    movement = set_movement(
                     current_line.center, current_line.middle - line_dist * (idx - 1),
                     current_line.center, current_line.middle - line_dist * idx,
                     0, movement_time,
-                ))
-    position = ("\\pos(%.3f,%.3f)"
-                % (current_line.center, current_line.middle - line_dist * idx))
-    scale = "\\fscx%d\\fscy%d" % (MAIN_LINE_SCALE, MAIN_LINE_SCALE) if line_style == "MainStyle" \
-        else "\\fscx%d\\fscy%d" % (SUB_LINE_SCALE, SUB_LINE_SCALE)
-    opacity = PREV_LINE_OPACITY + (255 - PREV_LINE_OPACITY) / max(1, PREV_LINE_NUM) * max(0, idx - 1)
-    if 0 < idx < PREV_LINE_NUM:
-
-        fade = ("\\fade(%d,%d,%d,%d,%d,%d,%d)"
-                % (0, opacity, opacity,
-                   0, fade_time, fade_time, fade_time))
-        new_line.text = (
-                "{\\an5%s%s%s}%s"
-                % (
-                    scale,
-                    movement if motion else position,
-                    fade,
-                    prev_line.text
                 )
+    position = set_position(current_line.center, current_line.middle - line_dist * idx)
+    font_scale = set_font_scale(MAIN_LINE_SCALE, MAIN_LINE_SCALE) if line_style == "MainStyle" \
+        else set_font_scale(SUB_LINE_SCALE, SUB_LINE_SCALE)
+    opacity = int(PREV_LINE_OPACITY + (255 - PREV_LINE_OPACITY) / max(1, PREV_LINE_NUM) * max(0, idx - 1))
+    if 0 < idx < PREV_LINE_NUM:
+        fade = set_fade(0, opacity, opacity, 0, fade_time, fade_time, fade_time)
+        new_line.text = (
+                "{\\%s%s%s%s}%s"
+                % (an, font_scale, movement if motion else position, fade,
+                    prev_line.text
+                   )
         )
     elif idx == PREV_LINE_NUM:
-        fade = ("\\fade(%d,%d,%d,%d,%d,%d,%d)"
-                % (opacity, opacity, 255,
-                   0, fade_time, max(new_line.duration - fade_time, fade_time), new_line.duration))
+        fade = set_fade(opacity, opacity, 255,
+                        0, fade_time, max(new_line.duration - fade_time, fade_time), new_line.duration)
         new_line.text = (
-                "{\\an5%s%s%s}%s"
-                % (
-                    scale,
-                    movement if motion else position,
-                    fade,
-                    prev_line.text
-                )
+                "{\\%s%s%s%s}%s"
+                % (an, font_scale, movement if motion else position, fade,
+                   prev_line.text
+                   )
         )
-
     return new_line
 
 
 def make_next_line(current_line: pyonfx.Line, next_line: pyonfx.Line,
                    idx: int, line_style: str = "SubStyle", motion: bool = True):
-
     line_dist = int(current_line.height * LINE_DISTANCE_RATE)
     new_line = current_line.copy()
     new_line.layer = idx + PREV_LINE_NUM
@@ -103,34 +85,29 @@ def make_next_line(current_line: pyonfx.Line, next_line: pyonfx.Line,
     new_line.y = current_line.y + line_dist * idx
     movement_time = min(MOVEMENT_TIME_MS, new_line.duration)
     fade_time = min(FADE_TIME, new_line.duration)
-    movement = ("\\move(%.3f,%.3f,%.3f,%.3f,%d,%d)"
-                % (
-                    current_line.center, current_line.middle + line_dist * (idx + 1),
-                    current_line.center, current_line.middle + line_dist * idx,
-                    0, movement_time,
-                ))
-    position = ("\\pos(%.3f,%.3f)"
-                % (current_line.center, current_line.middle + line_dist * idx))
-    scale = "\\fscx%d\\fscy%d" % (MAIN_LINE_SCALE, MAIN_LINE_SCALE) if line_style == "MainStyle" \
-        else "\\fscx%d\\fscy%d" % (SUB_LINE_SCALE, SUB_LINE_SCALE)
+    an = set_alignment(5)
+    movement = set_movement(
+        current_line.center, current_line.middle + line_dist * (idx + 1),
+        current_line.center, current_line.middle + line_dist * idx,
+        0, movement_time
+    )
+    position = set_position(current_line.center, current_line.middle + line_dist * idx)
+    scale = set_font_scale(MAIN_LINE_SCALE, MAIN_LINE_SCALE) if line_style == "MainStyle" \
+        else set_font_scale(SUB_LINE_SCALE, SUB_LINE_SCALE)
     if 0 < idx < NEXT_LINE_NUM:
         new_line.text = (
-                "{\\an5%s%s}%s"
-                % (
-                    scale,
-                    movement if motion else position,
-                    next_line.text
-                )
+                "{\\%s%s%s}%s"
+                % (an, scale, movement if motion else position,
+                   next_line.text
+                   )
         )
     elif idx == NEXT_LINE_NUM:
+        simple_fade = set_simple_fade(fade_time, 0)
         new_line.text = (
-                "{\\an5%s%s\\fad(%d,%d)}%s"
-                % (
-                    scale,
-                    movement if motion else position,
-                    fade_time, 0,
-                    next_line.text
-                )
+                "{\\%s%s%s%s}%s"
+                % (an, scale, movement if motion else position, simple_fade,
+                   next_line.text
+                   )
         )
 
     return new_line
