@@ -14,10 +14,12 @@ SUB_LINE_SCALE = 70
 PREV_LINE_OPACITY = 128
 
 
-def make_cur_line(line: pyonfx.Line, line_style: str = "MainStyle", motion: bool = True):
+def make_cur_line(line: pyonfx.Line, line_style: str = "MainStyle", is_moving: bool = True):
     line_dist = int(line.height * LINE_DISTANCE_RATE)
     new_line = line.copy()
     new_line.style = line_style
+    if len(new_line.actor) > 0:
+        new_line.style += "-%s" % new_line.actor
     movement_time = min(MOVEMENT_TIME_MS, new_line.duration)
     an = set_alignment(5)
     movement = set_movement(line.center, line.middle + line_dist,
@@ -28,7 +30,7 @@ def make_cur_line(line: pyonfx.Line, line_style: str = "MainStyle", motion: bool
         else set_font_scale(SUB_LINE_SCALE, SUB_LINE_SCALE)
     new_line.text = (
             "{%s%s%s}%s"
-            % (an, scale, movement if motion else position,
+            % (an, scale, movement if is_moving else position,
                line.text
                )
     )
@@ -36,12 +38,14 @@ def make_cur_line(line: pyonfx.Line, line_style: str = "MainStyle", motion: bool
 
 
 def make_prev_line(current_line: pyonfx.Line, prev_line: pyonfx.Line,
-                   idx: int, line_style: str = "SubStyle", motion: bool = True):
+                   idx: int, line_style: str = "SubStyle", is_moving: bool = True):
     line_dist = int(current_line.height * LINE_DISTANCE_RATE)
     new_line = current_line.copy()
     new_line.layer = idx
     new_line.style = line_style
     new_line.actor = prev_line.actor
+    if len(new_line.actor) > 0:
+        new_line.style += "-%s" % new_line.actor
     new_line.y = current_line.y - line_dist * idx
     movement_time = min(MOVEMENT_TIME_MS, new_line.duration)
     fade_time = min(FADE_TIME, new_line.duration)
@@ -59,8 +63,8 @@ def make_prev_line(current_line: pyonfx.Line, prev_line: pyonfx.Line,
         fade = set_fade(0, opacity, opacity, 0, fade_time, fade_time, fade_time)
         new_line.text = (
                 "{\\%s%s%s%s}%s"
-                % (an, font_scale, movement if motion else position, fade,
-                    prev_line.text
+                % (an, font_scale, movement if is_moving else position, fade,
+                   prev_line.text
                    )
         )
     elif idx == PREV_LINE_NUM:
@@ -68,7 +72,7 @@ def make_prev_line(current_line: pyonfx.Line, prev_line: pyonfx.Line,
                         0, fade_time, max(new_line.duration - fade_time, fade_time), new_line.duration)
         new_line.text = (
                 "{\\%s%s%s%s}%s"
-                % (an, font_scale, movement if motion else position, fade,
+                % (an, font_scale, movement if is_moving else position, fade,
                    prev_line.text
                    )
         )
@@ -76,12 +80,14 @@ def make_prev_line(current_line: pyonfx.Line, prev_line: pyonfx.Line,
 
 
 def make_next_line(current_line: pyonfx.Line, next_line: pyonfx.Line,
-                   idx: int, line_style: str = "SubStyle", motion: bool = True):
+                   idx: int, line_style: str = "SubStyle", is_moving: bool = True):
     line_dist = int(current_line.height * LINE_DISTANCE_RATE)
     new_line = current_line.copy()
     new_line.layer = idx + PREV_LINE_NUM
     new_line.style = line_style
     new_line.actor = next_line.actor
+    if len(new_line.actor) > 0:
+        new_line.style += "-%s" % new_line.actor
     new_line.y = current_line.y + line_dist * idx
     movement_time = min(MOVEMENT_TIME_MS, new_line.duration)
     fade_time = min(FADE_TIME, new_line.duration)
@@ -97,7 +103,7 @@ def make_next_line(current_line: pyonfx.Line, next_line: pyonfx.Line,
     if 0 < idx < NEXT_LINE_NUM:
         new_line.text = (
                 "{\\%s%s%s}%s"
-                % (an, scale, movement if motion else position,
+                % (an, scale, movement if is_moving else position,
                    next_line.text
                    )
         )
@@ -105,7 +111,7 @@ def make_next_line(current_line: pyonfx.Line, next_line: pyonfx.Line,
         simple_fade = set_simple_fade(fade_time, 0)
         new_line.text = (
                 "{\\%s%s%s%s}%s"
-                % (an, scale, movement if motion else position, simple_fade,
+                % (an, scale, movement if is_moving else position, simple_fade,
                    next_line.text
                    )
         )
@@ -131,10 +137,10 @@ if __name__ == '__main__':
     for i in range(len(lines)):
         for j in range(1, PREV_LINE_NUM + 1):
             if (i - j) >= 0:
-                io_ass.write_line(make_prev_line(lines[i], lines[i - j], j, motion=True))
+                io_ass.write_line(make_prev_line(lines[i], lines[i - j], j, is_moving=True))
 
         motion = not (i == 0)
-        io_ass.write_line(make_cur_line(lines[i], motion=motion))
+        io_ass.write_line(make_cur_line(lines[i], is_moving=motion))
 
         for j in range(1, NEXT_LINE_NUM + 1):
             next_style = "MainStyle" if (i + j) == (len(lines) - 1) else "SubStyle"
