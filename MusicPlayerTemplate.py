@@ -31,7 +31,7 @@ def make_cur_line(line: pyonfx.Line, line_style: str = "MainStyle", is_moving: b
     new_line.text = (
             "{%s%s%s}%s"
             % (an, scale, movement if is_moving else position,
-               line.text
+               line.raw_text
                )
     )
     return new_line
@@ -64,7 +64,7 @@ def make_prev_line(current_line: pyonfx.Line, prev_line: pyonfx.Line,
         new_line.text = (
                 "{\\%s%s%s%s}%s"
                 % (an, font_scale, movement if is_moving else position, fade,
-                   prev_line.text
+                   prev_line.raw_text
                    )
         )
     elif idx == PREV_LINE_NUM:
@@ -73,7 +73,7 @@ def make_prev_line(current_line: pyonfx.Line, prev_line: pyonfx.Line,
         new_line.text = (
                 "{\\%s%s%s%s}%s"
                 % (an, font_scale, movement if is_moving else position, fade,
-                   prev_line.text
+                   prev_line.raw_text
                    )
         )
     return new_line
@@ -104,7 +104,7 @@ def make_next_line(current_line: pyonfx.Line, next_line: pyonfx.Line,
         new_line.text = (
                 "{\\%s%s%s}%s"
                 % (an, scale, movement if is_moving else position,
-                   next_line.text
+                   next_line.raw_text
                    )
         )
     elif idx == NEXT_LINE_NUM:
@@ -112,7 +112,7 @@ def make_next_line(current_line: pyonfx.Line, next_line: pyonfx.Line,
         new_line.text = (
                 "{\\%s%s%s%s}%s"
                 % (an, scale, movement if is_moving else position, simple_fade,
-                   next_line.text
+                   next_line.raw_text
                    )
         )
 
